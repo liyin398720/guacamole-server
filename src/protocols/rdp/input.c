@@ -191,7 +191,7 @@ complete:
 
 }
 
-int guac_rdp_user_size_handler(guac_user* user, int width, int height) {
+int guac_rdp_user_size_handler(guac_user* user, int width, int height, int monitors, char** argv) {
 
     guac_client* client = user->client;
     guac_rdp_client* rdp_client = (guac_rdp_client*) client->data;
@@ -202,8 +202,42 @@ int guac_rdp_user_size_handler(guac_user* user, int width, int height) {
     width  = width  * settings->resolution / user->info.optimal_resolution;
     height = height * settings->resolution / user->info.optimal_resolution;
 
+    // Update monitor dimensions based on the number of monitors
+    for (int i = 0; i < settings->max_secondary_monitors; i++) {
+        
+        if (i < monitors) {
+            if (monitors == 1) break;
+            int i_monitor_width = atoi(argv[3 + i * 2]);
+            int i_monitor_height = atoi(argv[3 + i * 2 + 1]);
+
+            // Adjust dimensions based on resolution settings
+            i_monitor_width  = i_monitor_width  * settings->resolution / user->info.optimal_resolution;
+            i_monitor_height = i_monitor_height * settings->resolution / user->info.optimal_resolution;
+
+            // Set monitor dimensions
+            rdp_client->disp->monitors[i].width = i_monitor_width;
+            rdp_client->disp->monitors[i].height = i_monitor_height;
+        } else {
+            // Default to zero if no monitor is configured
+            rdp_client->disp->monitors[i].width = 0;
+            rdp_client->disp->monitors[i].height = 0;
+        }
+    }
+
+    if (monitors == 1) {
+        for (int i = 1; i < settings->max_secondary_monitors; i++) {
+
+            // Default to zero if no monitor is configured
+            rdp_client->disp->monitors[i].width = 0;
+            rdp_client->disp->monitors[i].height = 0;
+        }
+
+        rdp_client->disp->monitors[0].width = width;
+        rdp_client->disp->monitors[0].height = height;
+    }
+
     /* Send display update */
-    guac_rdp_disp_set_size(rdp_client->disp, settings, rdp_inst, width, height);
+    guac_rdp_disp_set_size(rdp_client->disp, settings, rdp_inst, width, height, monitors);
 
     return 0;
 

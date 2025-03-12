@@ -207,25 +207,33 @@ typedef int guac_user_clipboard_handler(guac_user* user, guac_stream* stream,
         char* mimetype);
 
 /**
- * Handler for Guacamole size events, invoked when a "size" instruction has
- * been received from a user. A "size" instruction indicates that the desired
+ * Handles size change events for a user in Guacamole. This function is invoked
+ * when a "size" instruction is received, indicating that the user's desired 
  * display size has changed.
  *
  * @param user
- *     The user whose desired display size has changed.
- *
+ *     The user whose display size has changed.
+ * 
  * @param width
- *     The desired width of the display, in pixels.
- *
+ *     The total desired width of the display in pixels (for multi-monitor setups).
+ * 
  * @param height
- *     The desired height of the display, in pixels.
+ *     The maximum desired height of the display in pixels (for multi-monitor setups).
+ * 
+ * @param monitors
+ *     The number of monitors in use.
+ * 
+ * @param argv
+ *     An array of strings representing the sizes of each monitor, starting from the 
+ *     fourth position in the array.
  *
  * @return
- *     Zero if the size event has been successfully handled, non-zero
- *     otherwise.
+ *     Returns zero if the size event is successfully handled; non-zero otherwise.
+ * 
  */
+
 typedef int guac_user_size_handler(guac_user* user,
-        int width, int height);
+    int width, int height, int monitors, char** argv);
 
 /**
  * Handler for Guacamole file streams received from a user. Each such file
